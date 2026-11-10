@@ -1,0 +1,14 @@
+{
+  "name": "attendance-monitor",
+  "version": "1.0.0",
+  "description": "Member 3 - Network reliability & monitoring (Day 1: connection tracking + heartbeat)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "client": "node testClient.js"
+  },
+  "dependencies": {
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.7.5"
+  }
+}
