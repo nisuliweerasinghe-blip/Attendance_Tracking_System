@@ -6,18 +6,30 @@
 //  2. This module: server sends "hb:ping" every `interval` ms and expects an ack
 //     within `timeout` ms. The ack time is the round-trip latency. After
 //     `maxMissed` consecutive misses the client is declared disconnected.
+//
+// If csvPath is given, every heartbeat result is appended to a CSV file
+// (useful evidence + data for graphs in the report).
 
+const fs = require('fs');
 const { ConnectionTracker } = require('./connectionTracker');
+
+function csvWriter(path) {
+  if (!path) return () => {};
+  if (!fs.existsSync(path)) fs.writeFileSync(path, 'timestamp,userId,role,result,rtt_ms\n');
+  return (row) => fs.appendFile(path, row + '\n', () => {});
+}
 
 function attachMonitor(io, opts = {}) {
   const {
-    interval = 5000,   // how often to ping each client
-    timeout = 3000,    // how long to wait for the pong
-    maxMissed = 3,     // consecutive misses before we drop the client
-    onChange = () => {}, // callback(event, record) 
+    interval = 5000,     // how often to ping each client
+    timeout = 3000,      // how long to wait for the pong
+    maxMissed = 3,       // consecutive misses before we drop the client
+    csvPath = null,      // optional latency log file
+    onChange = () => {}, // callback(event, record) - Member 1 can use it to broadcast
   } = opts;
 
   const tracker = new ConnectionTracker();
+  const logCsv = csvWriter(csvPath);
 
   io.on('connection', (socket) => {
     const rec = tracker.connect(socket);
@@ -40,9 +52,12 @@ function attachMonitor(io, opts = {}) {
       if (!socket) continue;
 
       const sentAt = Date.now();
+      tracker.recordSent(socket.id);
       socket.timeout(timeout).emit('hb:ping', sentAt, (err) => {
+        const now = new Date().toISOString();
         if (err) {
           const missed = tracker.recordMiss(socket.id);
+          logCsv(`${now},${rec.userId},${rec.role},miss,`);
           console.log(`[!] ${rec.userId} missed heartbeat (${missed}/${maxMissed})`);
           onChange('unstable', rec);
           if (missed >= maxMissed) {
@@ -50,7 +65,9 @@ function attachMonitor(io, opts = {}) {
             socket.disconnect(true);
           }
         } else {
-          tracker.recordPong(socket.id, Date.now() - sentAt);
+          const rtt = Date.now() - sentAt;
+          tracker.recordPong(socket.id, rtt);
+          logCsv(`${now},${rec.userId},${rec.role},ok,${rtt}`);
         }
       });
     }
