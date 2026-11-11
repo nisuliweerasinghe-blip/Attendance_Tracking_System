@@ -1,6 +1,9 @@
+// Call attachMonitor(io) inside real Socket.IO server instead.
+
 const http = require('http');
 const { Server } = require('socket.io');
 const { attachMonitor } = require('./heartbeatMonitor');
+const { EventLog } = require('./eventLog');
 
 const PORT = process.env.PORT || 3000;
 const httpServer = http.createServer();
@@ -17,12 +20,32 @@ const monitor = attachMonitor(io, {
   maxMissed: Number(process.env.MAX_MISSED) || 3,
 });
 
+const eventLog = new EventLog();
+
+// A lecturer client emits "attendance:mark"; we log it with a sequence number
+// and broadcast it to everyone in the same session room.
+io.on('connection', (socket) => {
+  const { sessionId, role } = socket.handshake.auth || {};
+  if (sessionId) socket.join(sessionId);
+
+  socket.on('attendance:mark', (data) => {
+    if (role !== 'lecturer' || !sessionId) return;
+    const event = eventLog.append(sessionId, 'attendance:marked', data);
+    io.to(sessionId).emit('attendance:update', event);
+    console.log(`[#${event.seq}] ${sessionId}: ${data.studentId} marked present`);
+  });
+});
+// -------------------------------------------------------------------------------------
+
 // Print the live monitoring table every 10 seconds.
 setInterval(() => {
   const rows = monitor.tracker.snapshot();
   if (rows.length) {
     console.log('\n=== Connection monitor ===');
     console.table(rows);
+    for (const s of eventLog.sessions()) {
+      console.log(`Event log: session ${s} -> last sequence #${eventLog.lastSeq(s)}`);
+    }
   }
 }, 10000);
 
