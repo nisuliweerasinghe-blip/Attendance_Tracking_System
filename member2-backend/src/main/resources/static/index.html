@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartAttend - Student</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>SmartAttend</h1>
+    <div id="userbox" hidden><span id="username"></span> <button id="logout" class="link">Log out</button></div>
+  </header>
+
+  <main>
+    <section id="auth-view" class="card">
+      <div class="tabs">
+        <button id="tab-login" class="tab active">Log in</button>
+        <button id="tab-register" class="tab">Register</button>
+      </div>
+      <form id="auth-form">
+        <label id="f-name" hidden>Full name <input name="name" autocomplete="name"></label>
+        <label id="f-sid" hidden>Student ID <input name="studentId"></label>
+        <label>Email <input name="email" type="email" required autocomplete="email"></label>
+        <label>Password <input name="password" type="password" required minlength="8" autocomplete="current-password"></label>
+        <button type="submit" id="auth-submit">Log in</button>
+      </form>
+      <p id="auth-msg" class="msg" role="alert"></p>
+    </section>
+
+    <section id="dash-view" hidden>
+      <div class="card">
+        <h2>Mark attendance</h2>
+        <form id="code-form">
+          <input id="code" maxlength="6" placeholder="ABC123" autocomplete="off" required>
+          <button type="submit" id="code-submit">Submit</button>
+        </form>
+        <p id="code-msg" class="msg" role="status"></p>
+      </div>
+
+      <div class="card">
+        <h2>My attendance <span id="count" class="muted"></span></h2>
+        <table>
+          <thead><tr><th>Course</th><th>Session</th><th>Time</th></tr></thead>
+          <tbody id="history"></tbody>
+        </table>
+        <p id="empty" class="muted" hidden>No attendance recorded yet.</p>
+      </div>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
