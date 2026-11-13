@@ -1,0 +1,19 @@
+# Java compiled files
+*.class
+**/bin/
+
+# Eclipse workspace metadata
+.metadata/
+**/.metadata/
+**/metadata/
+
+# Logs
+*.log
+
+# Node.js
+node_modules/
+.env
+
+# Build output
+dist/
+build/

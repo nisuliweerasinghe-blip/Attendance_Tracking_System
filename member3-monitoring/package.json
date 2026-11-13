@@ -1,0 +1,18 @@
+{
+  "name": "attendance-monitor",
+  "version": "1.0.0",
+  "description": "Member 3 - Network reliability & monitoring",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "client": "node testClient.js",
+    "test:steady": "node loadTest.js --scenario=steady --clients=100",
+    "test:drop": "node loadTest.js --scenario=mass-drop --clients=100",
+    "test:crash": "node loadTest.js --scenario=crash --clients=100",
+    "test:mute": "node loadTest.js --scenario=mute --clients=100"
+  },
+  "dependencies": {
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.7.5"
+  }
+}
